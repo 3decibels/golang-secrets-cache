@@ -1,0 +1,9 @@
+# Compiled binaries
+server.exe
+secrets-cache.exe
+server
+secrets-cache
+
+# OS generated files
+.DS_Store
+Thumbs.db

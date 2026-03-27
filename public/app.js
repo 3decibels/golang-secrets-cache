@@ -5,7 +5,7 @@ const Home = {
     link: null,
     error: null,
 
-    createSecret: async function(e) {
+    createSecret: async function (e) {
         e.preventDefault();
         if (!Home.secret.trim()) return;
 
@@ -66,7 +66,7 @@ const Home = {
             Home.secret = ""; // clear
             Home.loading = false;
             m.redraw();
-        } catch(e) {
+        } catch (e) {
             console.error(e);
             Home.loading = false;
             Home.error = e.response?.error || "An error occurred during encryption or upload.";
@@ -74,29 +74,29 @@ const Home = {
         }
     },
 
-    view: function() {
-        return m(".container", 
+    view: function () {
+        return m(".container",
             m(".card", [
                 m("h1", "Share a Secret"),
                 m("p.subtitle", "Encrypt a message for one-time retrieval."),
-                
+
                 m("form", { onsubmit: Home.createSecret }, [
                     m("textarea", {
                         placeholder: "Type your sensitive information here...",
                         disabled: Home.loading,
-                        oninput: function(e) { Home.secret = e.target.value },
+                        oninput: function (e) { Home.secret = e.target.value },
                         value: Home.secret
                     }),
-                    m("button[type=submit]", { disabled: Home.loading || !Home.secret.trim() }, 
+                    m("button[type=submit]", { disabled: Home.loading || !Home.secret.trim() },
                         Home.loading ? "Encrypting..." : "Generate Link"
                     )
                 ]),
 
                 Home.error ? m(".error-msg", Home.error) : null,
-                
+
                 Home.link ? m(".result-box", [
                     m("p", { style: "margin-bottom: 0.5rem; color: var(--text-color);" }, "Your one-time link (click to copy or share):"),
-                    m("a", { 
+                    m("a", {
                         href: Home.link,
                         onclick: (e) => {
                             e.preventDefault();
@@ -115,8 +115,9 @@ const ViewSecret = {
     secret: null,
     loading: true,
     error: null,
+    revealed: false,
 
-    oninit: async function(vnode) {
+    oninit: async function (vnode) {
         const token = vnode.attrs.token;
         const keyHex = vnode.attrs.key;
 
@@ -167,13 +168,13 @@ const ViewSecret = {
         }
     },
 
-    view: function() {
-        return m(".container", 
+    view: function () {
+        return m(".container",
             m(".card", [
                 m("h1", "View Secret"),
-                
+
                 ViewSecret.loading ? m("p", { style: "text-align: center" }, "Decrypting...") : null,
-                
+
                 ViewSecret.error ? [
                     m(".error-msg", { style: "font-size: 1.1rem; margin-bottom: 1.5rem;" }, ViewSecret.error),
                     m("button", { onclick: () => m.route.set("/") }, "Create New Secret")
@@ -181,8 +182,25 @@ const ViewSecret = {
 
                 ViewSecret.secret ? [
                     m("p.warning-text", "⚠️ This message has been destroyed from the server. Save it now if needed."),
-                    m(".secret-content", ViewSecret.secret),
-                    m("button", { onclick: () => m.route.set("/") }, "Create New Secret")
+
+                    ViewSecret.revealed ?
+                        m(".secret-content", ViewSecret.secret) :
+                        m(".secret-hidden", "•••••"),
+
+                    m(".button-group", [
+                        !ViewSecret.revealed ? m("button", {
+                            onclick: () => ViewSecret.revealed = true
+                        }, "Reveal Secret") : null,
+
+                        m("button.secondary", {
+                            onclick: () => {
+                                navigator.clipboard.writeText(ViewSecret.secret);
+                                alert("Copied to clipboard!");
+                            }
+                        }, "Copy to Clipboard")
+                    ]),
+
+                    m("button.secondary", { onclick: () => m.route.set("/"), style: "margin-top: 1.5rem;" }, "Create New Secret")
                 ] : null
             ])
         );

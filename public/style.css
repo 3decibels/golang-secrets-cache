@@ -143,6 +143,37 @@ button:disabled {
     white-space: pre-wrap;
     font-family: monospace;
     color: #fff;
+    word-break: break-all;
+}
+
+.secret-hidden {
+    background: var(--bg-color);
+    border: 1px dashed var(--border-color);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    font-size: 1.5rem;
+    letter-spacing: 4px;
+    color: #8b949e;
+    user-select: none;
+}
+
+.button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+button.secondary {
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+}
+
+button.secondary:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: #8b949e;
 }
 
 .warning-text {
