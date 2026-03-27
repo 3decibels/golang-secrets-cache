@@ -5,7 +5,7 @@ const Home = {
     link: null,
     error: null,
 
-    createSecret: function(e) {
+    createSecret: async function(e) {
         e.preventDefault();
         if (!Home.secret.trim()) return;
 
@@ -13,22 +13,65 @@ const Home = {
         Home.error = null;
         Home.link = null;
 
-        m.request({
-            method: "POST",
-            url: "/api/secret",
-            body: { secret: Home.secret }
-        }).then(function(result) {
-            Home.loading = false;
+        try {
+            // Generate Key
+            const cryptoKey = await window.crypto.subtle.generateKey(
+                { name: "AES-GCM", length: 256 },
+                true,
+                ["encrypt", "decrypt"]
+            );
+
+            // Export key to raw hex string
+            const exportedKey = await window.crypto.subtle.exportKey("raw", cryptoKey);
+            const keyArray = new Uint8Array(exportedKey);
+            const keyHex = Array.from(keyArray).map(b => b.toString(16).padStart(2, '0')).join('');
+
+            // Generate IV
+            const iv = window.crypto.getRandomValues(new Uint8Array(12));
+
+            // Encrypt
+            const encoder = new TextEncoder();
+            const encodedText = encoder.encode(Home.secret);
+            const ciphertextBuffer = await window.crypto.subtle.encrypt(
+                { name: "AES-GCM", iv: iv },
+                cryptoKey,
+                encodedText
+            );
+
+            // Combine iv + ciphertext
+            const ciphertextArray = new Uint8Array(ciphertextBuffer);
+            const combinedArray = new Uint8Array(iv.length + ciphertextArray.length);
+            combinedArray.set(iv, 0);
+            combinedArray.set(ciphertextArray, iv.length);
+
+            // Convert to base64
+            let binaryString = "";
+            for (let i = 0; i < combinedArray.length; i++) {
+                binaryString += String.fromCharCode(combinedArray[i]);
+            }
+            const base64Data = btoa(binaryString);
+
+            // Send to server
+            const result = await m.request({
+                method: "POST",
+                url: "/api/secret",
+                body: { encrypted_data: base64Data }
+            });
+
             // Build absolute URL
             const url = new URL(window.location.origin);
             url.pathname = "/";
-            url.hash = `!/secret/${result.token}/${result.key}`;
+            url.hash = `!/secret/${result.token}/${keyHex}`;
             Home.link = url.toString();
             Home.secret = ""; // clear
-        }).catch(function(e) {
             Home.loading = false;
-            Home.error = e.response?.error || "An error occurred";
-        });
+            m.redraw();
+        } catch(e) {
+            console.error(e);
+            Home.loading = false;
+            Home.error = e.response?.error || "An error occurred during encryption or upload.";
+            m.redraw();
+        }
     },
 
     view: function() {

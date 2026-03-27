@@ -7,12 +7,11 @@ This file provides essential context, architectural rules, and technical boundar
 `secrets-cache` is a secure, single-use secret sharing application. 
 - **Backend**: Golang (Standard Library)
 - **Frontend**: Mithril.js + Vanilla CSS (No build step)
-- **Primary Flow**: A user submits a plaintext secret. The backend automatically generates a 16-byte `token` and a 256-bit AES `key`, encrypts the payload using `crypto/aes` (AES-GCM), and caches it ephemerally in a `sync.Map`. The client receives a URL containing the `token` and `key` inside the hash fragment. When the receiver clicks the link, the backend retrieves the cipher and **permanently deletes it from memory**. It returns the raw encrypted payload, which the Mithril.js frontend then decrypts locally using the Web Crypto API.
+- **Primary Flow**: A user types a secret. The Mithril.js client generates a 256-bit AES `key` and encrypts the payload (AES-GCM) natively. It POSTs the encrypted data to the backend, which assigns a 16-byte `token` and caches the ciphertext ephemerally in a `sync.Map`. The client merges the returned `token` and its local `key` into a URL hash fragment. When the receiver clicks the link, the backend retrieves the cipher and **permanently deletes it from memory**. It returns the raw encrypted payload, which the Mithril.js frontend then decrypts locally.
 
 ## Strict Guidelines & Conventions
 
-### Backend (Golang)
-- **Zero Dependencies**: Stick precisely to the Go standard library (`net/http`, `crypto/cipher`, `crypto/aes`, `crypto/rand`, etc.). Do not run `go get` or introduce new dependencies to `go.mod` unless explicitly permitted.
+- **Zero Dependencies**: Stick precisely to the Go standard library (`net/http`, `crypto/rand`, etc.). Do not run `go get` or introduce new dependencies to `go.mod` unless explicitly permitted.
 - **In-Memory Storage**: The system is designed to be ephemeral. Stick to thread-safe structs like `sync.Map` for storing the encrypted payloads. No persistent databases (SQL/NoSQL) should be introduced.
 - **Security Protocols**: 
   - Never log plaintext secrets or AES encryption keys in the server console or files.
@@ -24,9 +23,8 @@ This file provides essential context, architectural rules, and technical boundar
 - **Routing Rules**: Keep the sensitive decryption `key` within the URL hash fragment (i.e., `/#!/secret/:token/:key`). This ensures the exact key string doesn't get swept into standard access logs when clients click the link.
 - **Aesthetic**: The application targets a premium, dark-mode aesthetic with smooth animations. Maintain uncluttered and clean UI updates when modifying styles.
 
-## Directory Structure
-
-- `/` : Core Go server files including the entry point (`main.go`) and the cryptography helpers (`crypto.go`).
+- **Directory Structure**
+- `/` : Core Go server files including the entry point (`main.go`). Note that backend cryptography components have been removed.
 - `/public/` : The directory served by the `net/http` FileServer. Contains the frontend SPA (`index.html`, `app.js`, `style.css`).
 
 ## Running and Testing

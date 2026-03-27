@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/rand"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
@@ -9,6 +10,16 @@ import (
 	"sync"
 	"time"
 )
+
+// GenerateRandomBytes returns securely generated random bytes.
+func GenerateRandomBytes(n int) ([]byte, error) {
+	b := make([]byte, n)
+	_, err := rand.Read(b)
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
+}
 
 // In-memory store for our secrets
 // Map key string -> struct { encryptedData []byte; createdAt time.Time }
@@ -21,12 +32,11 @@ type SecretItem struct {
 }
 
 type CreateRequest struct {
-	Secret string `json:"secret"`
+	EncryptedData string `json:"encrypted_data"`
 }
 
 type CreateResponse struct {
 	Token string `json:"token"`
-	Key   string `json:"key"`
 }
 
 type RetrieveRequest struct {
@@ -46,7 +56,7 @@ func sendError(w http.ResponseWriter, message string, status int) {
 	json.NewEncoder(w).Encode(ErrorResponse{Error: message})
 }
 
-// handleCreateSecret securely generates a key and token, encrypts the payload, and saves it.
+// handleCreateSecret securely generates a token and saves the provided encrypted payload.
 func handleCreateSecret(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if r.Method != http.MethodPost {
@@ -55,15 +65,15 @@ func handleCreateSecret(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req CreateRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Secret == "" {
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.EncryptedData == "" {
 		sendError(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	// Generate 32-byte key for AES-256
-	keyBytes, err := GenerateRandomBytes(32)
+	// Decode the base64 encrypted data from the client
+	encryptedData, err := base64.StdEncoding.DecodeString(req.EncryptedData)
 	if err != nil {
-		sendError(w, "Failed to generate key", http.StatusInternalServerError)
+		sendError(w, "Invalid base64 payload", http.StatusBadRequest)
 		return
 	}
 
@@ -74,15 +84,7 @@ func handleCreateSecret(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Encrypt the secret
-	encryptedData, err := Encrypt([]byte(req.Secret), keyBytes)
-	if err != nil {
-		sendError(w, "Encryption failed", http.StatusInternalServerError)
-		return
-	}
-
 	tokenHex := hex.EncodeToString(tokenBytes)
-	keyHex := hex.EncodeToString(keyBytes)
 
 	// Store in memory
 	store.Store(tokenHex, SecretItem{
@@ -90,10 +92,9 @@ func handleCreateSecret(w http.ResponseWriter, r *http.Request) {
 		CreatedAt:     time.Now(),
 	})
 
-	// Return token and key
+	// Return token
 	resp := CreateResponse{
 		Token: tokenHex,
-		Key:   keyHex,
 	}
 	json.NewEncoder(w).Encode(resp)
 }
