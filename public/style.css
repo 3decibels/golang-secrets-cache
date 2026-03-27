@@ -1,0 +1,153 @@
+:root {
+    --bg-color: #0d1117;
+    --text-color: #c9d1d9;
+    --primary-color: #58a6ff;
+    --primary-hover: #1f6feb;
+    --border-color: #30363d;
+    --card-bg: #161b22;
+    --error-color: #f85149;
+    --success-color: #2ea043;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.container {
+    width: 100%;
+    max-width: 500px;
+    padding: 2rem;
+}
+
+.card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 2.5rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #fff;
+    text-align: center;
+}
+
+p.subtitle {
+    text-align: center;
+    font-size: 0.9rem;
+    margin-bottom: 2rem;
+    color: #8b949e;
+}
+
+textarea {
+    width: 100%;
+    height: 120px;
+    background: var(--bg-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 1rem;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 1rem;
+    resize: none;
+    margin-bottom: 1rem;
+    transition: border-color 0.2s;
+}
+
+textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+button {
+    width: 100%;
+    background-color: var(--primary-color);
+    color: #fff;
+    border: none;
+    padding: 0.75rem;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+button:hover {
+    background-color: var(--primary-hover);
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Result Box */
+.result-box {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: rgba(88, 166, 255, 0.1);
+    border: 1px solid var(--primary-color);
+    border-radius: 8px;
+    word-break: break-all;
+    font-size: 0.9rem;
+}
+
+.result-box a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.result-box a:hover {
+    text-decoration: underline;
+}
+
+.error-msg {
+    color: var(--error-color);
+    margin-top: 1rem;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+/* View Route Specifics */
+.secret-content {
+    background: var(--bg-color);
+    border: 1px solid var(--success-color);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    white-space: pre-wrap;
+    font-family: monospace;
+    color: #fff;
+}
+
+.warning-text {
+    color: var(--error-color);
+    font-size: 0.85rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
