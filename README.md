@@ -2,6 +2,10 @@
 
 A minimalist, secure web application for sharing secrets that can only be retrieved **once**. Built with a Golang backend and a clean, dark-mode Mithril.js frontend.
 
+## WARNING
+
+This project is an experiment in using AI to create a simple application. Although it uses the word `secure` in its name, it has not been vetted for security and should not be used for storing sensitive information. There are still many security considerations to address before it can be considered production-ready.
+
 ## Features
 
 - **One-Time Retrieval**: Secrets are instantly and permanently deleted from the server the moment they are successfully viewed.
