@@ -73,21 +73,55 @@ const ViewSecret = {
     loading: true,
     error: null,
 
-    oninit: function(vnode) {
+    oninit: async function(vnode) {
         const token = vnode.attrs.token;
-        const key = vnode.attrs.key;
+        const keyHex = vnode.attrs.key;
 
-        m.request({
-            method: "POST",
-            url: "/api/retrieve",
-            body: { token: token, key: key }
-        }).then(function(result) {
-            ViewSecret.secret = result.secret;
+        try {
+            const result = await m.request({
+                method: "POST",
+                url: "/api/retrieve",
+                body: { token: token }
+            });
+
+            // Convert base64 to Uint8Array
+            const binaryString = atob(result.encrypted_data);
+            const encryptedBytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                encryptedBytes[i] = binaryString.charCodeAt(i);
+            }
+
+            // Extract IV (first 12 bytes) and ciphertext
+            const iv = encryptedBytes.slice(0, 12);
+            const ciphertext = encryptedBytes.slice(12);
+
+            // Import key
+            const keyBytes = new Uint8Array(keyHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+            const cryptoKey = await window.crypto.subtle.importKey(
+                "raw",
+                keyBytes,
+                { name: "AES-GCM" },
+                false,
+                ["decrypt"]
+            );
+
+            // Decrypt
+            const decryptedBuffer = await window.crypto.subtle.decrypt(
+                { name: "AES-GCM", iv: iv },
+                cryptoKey,
+                ciphertext
+            );
+
+            const decoder = new TextDecoder();
+            ViewSecret.secret = decoder.decode(decryptedBuffer);
             ViewSecret.loading = false;
-        }).catch(function(e) {
-            ViewSecret.error = e.response?.error || "Secret not found or already viewed.";
+            m.redraw();
+        } catch (e) {
+            console.error(e);
+            ViewSecret.error = e.response?.error || "Secret not found, already viewed, or decryption failed.";
             ViewSecret.loading = false;
-        });
+            m.redraw();
+        }
     },
 
     view: function() {

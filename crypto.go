@@ -4,7 +4,6 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
-	"errors"
 	"io"
 )
 
@@ -39,28 +38,4 @@ func Encrypt(plaintext []byte, key []byte) ([]byte, error) {
 	return ciphertext, nil
 }
 
-// Decrypt decrypts encrypted data using AES-GCM and the provided key.
-func Decrypt(encryptedData []byte, key []byte) ([]byte, error) {
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, err
-	}
-
-	aesGCM, err := cipher.NewGCM(block)
-	if err != nil {
-		return nil, err
-	}
-
-	nonceSize := aesGCM.NonceSize()
-	if len(encryptedData) < nonceSize {
-		return nil, errors.New("ciphertext too short")
-	}
-
-	nonce, ciphertext := encryptedData[:nonceSize], encryptedData[nonceSize:]
-	plaintext, err := aesGCM.Open(nil, nonce, ciphertext, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return plaintext, nil
-}
+// (Decrypt function removed since client-side handles decryption)

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"log"
@@ -30,11 +31,10 @@ type CreateResponse struct {
 
 type RetrieveRequest struct {
 	Token string `json:"token"`
-	Key   string `json:"key"`
 }
 
 type RetrieveResponse struct {
-	Secret string `json:"secret"`
+	EncryptedData string `json:"encrypted_data"`
 }
 
 type ErrorResponse struct {
@@ -122,24 +122,12 @@ func handleRetrieveSecret(w http.ResponseWriter, r *http.Request) {
 	// Immediately delete to ensure one-time retrieval
 	store.Delete(req.Token)
 
-	// Decode key
-	keyBytes, err := hex.DecodeString(req.Key)
-	if err != nil || len(keyBytes) != 32 {
-		sendError(w, "Invalid key", http.StatusBadRequest)
-		return
-	}
-
-	// Decrypt data
+	// Send back the base64 encrypted data
 	secretItem := item.(SecretItem)
-	plaintextBytes, err := Decrypt(secretItem.EncryptedData, keyBytes)
-	if err != nil {
-		sendError(w, "Decryption failed or invalid key", http.StatusUnauthorized)
-		return
-	}
+	b64Data := base64.StdEncoding.EncodeToString(secretItem.EncryptedData)
 
-	// Send back the plaintext
 	resp := RetrieveResponse{
-		Secret: string(plaintextBytes),
+		EncryptedData: b64Data,
 	}
 	json.NewEncoder(w).Encode(resp)
 }

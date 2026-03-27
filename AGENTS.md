@@ -7,7 +7,7 @@ This file provides essential context, architectural rules, and technical boundar
 `secrets-cache` is a secure, single-use secret sharing application. 
 - **Backend**: Golang (Standard Library)
 - **Frontend**: Mithril.js + Vanilla CSS (No build step)
-- **Primary Flow**: A user submits a plaintext secret. The backend automatically generates a 16-byte `token` and a 256-bit AES `key`, encrypts the payload using `crypto/aes` (AES-GCM), and caches it ephemerally in a `sync.Map`. The client receives a URL containing the `token` and `key` inside the hash fragment. When the receiver clicks the link, the backend retrieves the cipher, **permanently deletes it from memory**, decrypts the payload with the key, and returns the plaintext.
+- **Primary Flow**: A user submits a plaintext secret. The backend automatically generates a 16-byte `token` and a 256-bit AES `key`, encrypts the payload using `crypto/aes` (AES-GCM), and caches it ephemerally in a `sync.Map`. The client receives a URL containing the `token` and `key` inside the hash fragment. When the receiver clicks the link, the backend retrieves the cipher and **permanently deletes it from memory**. It returns the raw encrypted payload, which the Mithril.js frontend then decrypts locally using the Web Crypto API.
 
 ## Strict Guidelines & Conventions
 
@@ -16,7 +16,7 @@ This file provides essential context, architectural rules, and technical boundar
 - **In-Memory Storage**: The system is designed to be ephemeral. Stick to thread-safe structs like `sync.Map` for storing the encrypted payloads. No persistent databases (SQL/NoSQL) should be introduced.
 - **Security Protocols**: 
   - Never log plaintext secrets or AES encryption keys in the server console or files.
-  - The API methods that submit or retrieve secrets should operate strictly over POST requests to avoid leaking keys in server URL logs.
+  - The API methods that submit or retrieve secrets should operate strictly over POST requests. The decryption `key` must never be sent to the backend during retrieval.
 
 ### Frontend (Mithril.js & HTML/CSS)
 - **No Node.js Build Steps**: The frontend heavily avoids modern Javascript bundlers (Webpack, Vite) or package managers (NPM). Mithril.js is imported directly via CDN in `index.html`. 
