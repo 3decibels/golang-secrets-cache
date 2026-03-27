@@ -41,7 +41,7 @@ go build -o server.exe
 
 *Alternatively, you can skip the build step and run the code directly:*
 ```bash
-go run main.go crypto.go
+go run main.go
 ```
 
 The server will initialize and begin listening on `http://localhost:8080`.

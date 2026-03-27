@@ -29,5 +29,5 @@ This file provides essential context, architectural rules, and technical boundar
 
 ## Running and Testing
 
-- The application can be started directly without compiling by running: `go run main.go crypto.go`
+- The application can be started directly without compiling by running: `go run main.go`
 - The server will be accessible at `http://localhost:8080`.
