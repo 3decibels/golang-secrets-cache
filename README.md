@@ -13,7 +13,7 @@ A minimalist, secure web application for sharing secrets that can only be retrie
 ## How It Works
 
 1. **Creation**: The user types a secret in the web interface and submits it.
-2. **Encryption**: The Golang backend generates a random 16-byte identification `token` and a 32-byte AES encryption `key`. It encrypts the plaintext payload and caches it in memory keyed by the `token`.
+2. **Encryption**: The Golang backend generates a random 16-byte identification `token` and a 256-bit AES encryption `key`. It encrypts the plaintext payload and caches it in memory keyed by the `token`.
 3. **Sharing**: The backend returns the `token` and `key` back to the frontend, producing a shareable URL containing both. 
 4. **Retrieval**: When a receiver navigates to the URL, the client reads the `token` and `key` from the URL. It calls the backend retrieval hook via `POST` with these variables. The backend fetches the payload, **deletes it immediately**, and decrypts it with the `key` to return the plaintext. Any subsequent requests will result in an error.
 
