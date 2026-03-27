@@ -5,6 +5,13 @@ const Home = {
     link: null,
     error: null,
 
+    oninit: function() {
+        Home.secret = "";
+        Home.loading = false;
+        Home.link = null;
+        Home.error = null;
+    },
+
     createSecret: async function (e) {
         e.preventDefault();
         if (!Home.secret.trim()) return;
@@ -84,7 +91,11 @@ const Home = {
                     m("textarea", {
                         placeholder: "Type your sensitive information here...",
                         disabled: Home.loading,
-                        oninput: function (e) { Home.secret = e.target.value },
+                        oninput: function (e) { 
+                            Home.secret = e.target.value;
+                            Home.link = null;
+                            Home.error = null;
+                        },
                         value: Home.secret
                     }),
                     m("button[type=submit]", { disabled: Home.loading || !Home.secret.trim() },
@@ -118,6 +129,11 @@ const ViewSecret = {
     revealed: false,
 
     oninit: async function (vnode) {
+        ViewSecret.secret = null;
+        ViewSecret.loading = true;
+        ViewSecret.error = null;
+        ViewSecret.revealed = false;
+
         const token = vnode.attrs.token;
         const keyHex = vnode.attrs.key;
 
