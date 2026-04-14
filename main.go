@@ -5,6 +5,8 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"sync"
@@ -134,6 +136,9 @@ func handleRetrieveSecret(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	port := flag.Int("port", 8080, "TCP port the server will bind to")
+	flag.Parse()
+
 	// API routes
 	http.HandleFunc("/api/secret", handleCreateSecret)
 	http.HandleFunc("/api/retrieve", handleRetrieveSecret)
@@ -142,8 +147,9 @@ func main() {
 	fs := http.FileServer(http.Dir("./public"))
 	http.Handle("/", fs)
 
-	log.Println("Server starting on http://localhost:8080")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	addr := fmt.Sprintf(":%d", *port)
+	log.Printf("Server starting on http://localhost%s\n", addr)
+	if err := http.ListenAndServe(addr, nil); err != nil {
 		log.Fatalf("Server failed: %v", err)
 	}
 }

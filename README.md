@@ -44,7 +44,14 @@ go build -o server.exe
 go run main.go
 ```
 
-The server will initialize and begin listening on `http://localhost:8080`.
+By default, the server will initialize and begin listening on `http://localhost:8080`. You can change the port using the `-port` command line flag:
+
+```bash
+# Run on a custom port (e.g. 9090)
+./server.exe -port 9090
+# Or when using go run
+go run main.go -port 9090
+```
 
 ### 2. Access the Web App
 
